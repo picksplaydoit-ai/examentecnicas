@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen de Técnicas Fisicoquímicas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        input[type="radio"] { transform: scale(1.2); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-12">
+
+    <div id="app" class="max-w-2xl mx-auto px-4 pt-8">
+        <!-- Pantalla de Inicio -->
+        <div id="start-screen" class="glass p-8 rounded-2xl shadow-xl text-center border border-slate-200">
+            <h1 class="text-3xl font-bold text-slate-800 mb-4 text-balance">Examen de Técnicas Fisicoquímicas</h1>
+            <p class="text-slate-600 mb-8 text-sm">Evaluación de 15 preguntas sobre análisis de alimentos, densidad y valoraciones químicas.</p>
+            
+            <div class="mb-6 text-left">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Ingresa tu nombre completo:</label>
+                <input type="text" id="student-name" placeholder="Escribe tu nombre..." 
+                    class="w-full p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+            </div>
+            
+            <button onclick="startExam()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-200">
+                Comenzar Examen
+            </button>
+        </div>
+
+        <!-- Pantalla del Examen -->
+        <div id="exam-screen" class="hidden">
+            <div class="sticky top-4 z-10 glass p-4 mb-6 rounded-xl border border-slate-200 shadow-md flex justify-between items-center">
+                <span id="display-name" class="font-bold text-blue-700 truncate mr-2 text-sm md:text-base"></span>
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">15 Preguntas</span>
+            </div>
+
+            <div id="questions-container" class="space-y-6">
+                <!-- Preguntas -->
+            </div>
+
+            <button onclick="submitExam()" class="mt-10 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-5 rounded-2xl transition-all shadow-xl shadow-emerald-100 uppercase tracking-widest">
+                Enviar y Calificar
+            </button>
+        </div>
+
+        <!-- Pantalla de Resultados -->
+        <div id="result-screen" class="hidden">
+            <div class="glass p-8 rounded-3xl shadow-2xl border border-slate-200 text-center mb-8">
+                <div id="result-icon" class="text-6xl mb-4"></div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-1" id="final-name"></h2>
+                <p class="text-slate-500 text-sm mb-4">Resultado Final</p>
+                <div class="my-6">
+                    <span class="text-7xl font-black text-blue-600" id="score-display">0</span>
+                    <span class="text-2xl font-bold text-slate-400">/100</span>
+                </div>
+                <p id="result-message" class="text-slate-600 font-medium px-4"></p>
+                <button onclick="location.reload()" class="mt-8 bg-slate-800 text-white px-6 py-2 rounded-lg font-semibold hover:bg-slate-700 transition-colors">Reintentar</button>
+            </div>
+
+            <h3 class="font-bold text-slate-800 mb-4 px-2 text-lg">Revisión de respuestas:</h3>
+            <div id="review-container" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: "¿Qué nutriente se determina mediante el método Soxhlet?", a: ["Grasas", "Proteínas", "Azúcares", "Cenizas"], c: 0 },
+            { q: "¿Qué elemento químico se cuantifica en el método Kjeldahl?", a: ["Carbono", "Nitrógeno", "Oxígeno", "Calcio"], c: 1 },
+            { q: "¿Qué mide el índice de acidez en un aceite o grasa?", a: ["La cantidad de vitaminas", "Los ácidos grasos libres", "El contenido de agua", "El punto de ebullición"], c: 1 },
+            { q: "La Molaridad (M) se expresa en moles de soluto por cada...", a: ["Kilogramo de solvente", "Litro de solución", "100 gramos de muestra", "Mililitro de agua"], c: 1 },
+            { q: "¿Qué reactivo se usa comúnmente para titular la acidez en alimentos?", a: ["Hidróxido de Sodio (NaOH)", "Ácido Sulfúrico", "Hexano", "Éter de petróleo"], c: 0 },
+            { q: "¿Cuál es el reactivo que detecta azúcares reductores cambiando a rojo ladrillo?", a: ["Biuret", "Fehling / Benedict", "Yodo", "Fenolftaleína"], c: 1 },
+            { q: "¿Qué miden los grados Brix (°Bx) en una fruta o jugo?", a: ["Proteína total", "Acidez volátil", "Sólidos solubles (Azúcares)", "Grasas saturadas"], c: 2 },
+            { q: "Si preparas una solución mezclando 10g de sal en 90g de agua, ¿cuál es su % m/m?", a: ["5%", "10%", "20%", "100%"], c: 1 },
+            { q: "¿Cuál es la fórmula básica para calcular la densidad de una sustancia?", a: ["Masa dividida entre Volumen", "Volumen multiplicado por Masa", "Peso dividido entre Gravedad", "Masa sumada al Volumen"], c: 0 },
+            { q: "¿Qué instrumento se usa para medir el azúcar mediante la luz?", a: ["Balanza", "Refractómetro", "Termómetro", "PH-metro"], c: 1 },
+            { q: "¿Cuál es el factor estándar para convertir nitrógeno a proteína?", a: ["6.25", "4.00", "9.00", "1.00"], c: 0 },
+            { q: "¿Qué representa el contenido de cenizas en un análisis bromatológico?", a: ["El contenido total de minerales", "La cantidad de fibra cruda", "Los azúcares fermentables", "La humedad de la muestra"], c: 0 },
+            { q: "¿En qué consiste una titulación residual o por retroceso?", a: ["Se titula directamente la muestra", "Se añade un exceso de reactivo y se titula lo que no reaccionó", "No se utilizan indicadores químicos", "Se realiza solo en sustancias sólidas"], c: 1 },
+            { q: "En una dilución, si añades más solvente a una muestra...", a: ["La concentración aumenta", "La concentración disminuye", "La concentración se mantiene igual", "La masa del soluto cambia"], c: 1 },
+            { q: "¿Cuál es el valor de pH de una solución neutra a 25°C?", a: ["0", "14", "7", "1"], c: 2 }
+        ];
+
+        let userName = "";
+
+        function startExam() {
+            const nameInput = document.getElementById('student-name');
+            if (!nameInput.value.trim()) {
+                alert("Por favor, ingresa tu nombre.");
+                return;
+            }
+            userName = nameInput.value.trim();
+            document.getElementById('display-name').innerText = "👤 " + userName;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('exam-screen').classList.remove('hidden');
+            renderQuestions();
+            window.scrollTo(0, 0);
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = questions.map((q, i) => `
+                <div class="glass p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:border-blue-200">
+                    <p class="font-bold text-slate-800 mb-4 leading-tight">${i + 1}. ${q.q}</p>
+                    <div class="space-y-3">
+                        ${q.a.map((option, optIdx) => `
+                            <label class="flex items-center p-3 rounded-xl border border-slate-100 hover:bg-blue-50 cursor-pointer transition-colors group">
+                                <input type="radio" name="q${i}" value="${optIdx}" class="accent-blue-600">
+                                <span class="ml-3 text-slate-700 text-sm group-hover:text-blue-800">${option}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function submitExam() {
+            let correctCount = 0;
+            const reviewContainer = document.getElementById('review-container');
+            reviewContainer.innerHTML = "";
+
+            for (let i = 0; i < questions.length; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                const isCorrect = selected && parseInt(selected.value) === questions[i].c;
+                
+                if (isCorrect) correctCount++;
+
+                const reviewItem = document.createElement('div');
+                reviewItem.className = `p-4 rounded-xl border-l-4 ${isCorrect ? 'bg-emerald-50 border-emerald-500' : 'bg-red-50 border-red-500'}`;
+                reviewItem.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold uppercase ${isCorrect ? 'text-emerald-700' : 'text-red-700'}">
+                            Pregunta ${i + 1}: ${isCorrect ? 'Correcta ✓' : 'Incorrecta ✗'}
+                        </span>
+                    </div>
+                    <p class="text-sm text-slate-800 font-medium mb-1">${questions[i].q}</p>
+                    <p class="text-xs text-slate-600">
+                        <span class="font-bold">Respuesta Correcta:</span> ${questions[i].a[questions[i].c]}
+                    </p>
+                `;
+                reviewContainer.appendChild(reviewItem);
+            }
+
+            const finalScore = Math.round((correctCount / questions.length) * 100);
+
+            document.getElementById('exam-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-name').innerText = userName;
+            document.getElementById('score-display').innerText = finalScore;
+            
+            const icon = document.getElementById('result-icon');
+            const msg = document.getElementById('result-message');
+            
+            if (finalScore >= 90) {
+                icon.innerText = "🎉";
+                msg.innerText = "¡Excelente! Tienes un dominio excepcional de las técnicas físicoquímicas.";
+            } else if (finalScore >= 70) {
+                icon.innerText = "👍";
+                msg.innerText = "¡Bien hecho! Conoces bien los fundamentos del laboratorio.";
+            } else if (finalScore >= 60) {
+                icon.innerText = "📝";
+                msg.innerText = "Aprobado. Revisa los puntos fallidos para reforzar tu conocimiento.";
+            } else {
+                icon.innerText = "📖";
+                msg.innerText = "Sigue estudiando. La práctica y el repaso te ayudarán a mejorar.";
+            }
+
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
